@@ -29,6 +29,8 @@ USART_TypeDef *pUART2 = USART2;
 
 TIM_TypeDef *pTIM2 = TIM2;
 
+int c;
+
 void TIM2_IRQHandler(void);
 
 

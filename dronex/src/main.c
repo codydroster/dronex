@@ -33,7 +33,7 @@ TIM_TypeDef *pTIM2 = TIM2;
 
 
 void TIM2_IRQHandler(void);
-
+void USART2_IRQHandler(void);
 
 uint16_t throttle_trans;
 uint16_t throttle_value;
@@ -50,9 +50,16 @@ int main(void)
 	xbee_uart_init(pGPIOA, pUART2);
 
 
+	//GPIO output pin.
+	pGPIOA->MODER &= ~(3U << 0); //clear
+	pGPIOA->MODER |= (1U << 0);	//output
+
+	//pGPIOA->ODR |= (1U << 0);
+
+	pUART2->TDR |= 0xAD;
 
 
-	throttle_value =  50U;
+	throttle_value =  0U;
 	throttle_trans = (0x8000UL | (throttle_value + 24UL));
 
 	yaw_value = 1000UL;
@@ -83,6 +90,7 @@ int main(void)
 	transmit_data[14] = 0xff;
 	transmit_data[15] = 0xff;
 
+
 	return 0;
 
 
@@ -101,7 +109,9 @@ uart_transmit(pUART1);
 void USART2_IRQHandler(void)
 {
 
-
+	pUART2->ICR |= (1UL << 17);	//clear Character match flag
+	pGPIOA->ODR ^= (1 << 0);
+	pUART2->RQR |= (1 << 3);	//clear rx
 }
 
 
@@ -128,6 +138,8 @@ void system_init(void)
 
 	//USART1 clock enable
 	pRCC->APB2ENR |= (1 << 14);
+	//USART2 clock enable
+	pRCC->APB1ENR1 |= (1 << 17);
 
 	//TIM2 CLK
 	pRCC->APB1ENR1 |= (1 << 0);

@@ -43,7 +43,7 @@ void drone_uart_init(GPIO_TypeDef *pGPIO, USART_TypeDef *pUART)
 	pUART->BRR = 0xD0UL;
 
 
-//	pUART->CR2 |= (1 <<19);	//MSB
+	//pUART->CR2 |= (1 <<19);	//MSB
 	pUART->CR1 |= (1 << 0); //USART Enable
 
 	pUART->CR1 |= (1UL << 3); //TE, RE enable

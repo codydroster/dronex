@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "drone_uart.h"
+#include "xbee_uart.h"
 #include "main.h"
 
 #define BASE_ADDRESS 0X20000000
@@ -46,6 +47,7 @@ int main(void)
 
 	system_init();
 	drone_uart_init(pGPIOA, pUART1);
+	xbee_uart_init(pGPIOA, pUART2);
 
 
 
@@ -96,6 +98,12 @@ uart_transmit(pUART1);
 }
 
 
+void USART2_IRQHandler(void)
+{
+
+
+}
+
 
 void system_init(void)
 {
@@ -110,7 +118,9 @@ void system_init(void)
 	pRCC->CR |= (1 << 3);	//MSI range in CR
 
 	//interrupts
-NVIC_EnableIRQ(TIM2_IRQn);
+	NVIC_EnableIRQ(TIM2_IRQn);
+	NVIC_EnableIRQ(USART2_IRQn);
+
 	__enable_irq();
 
 	//peripheral clock PORTA

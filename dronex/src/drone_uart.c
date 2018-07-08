@@ -22,7 +22,7 @@ void drone_uart_init(GPIO_TypeDef *pGPIO, USART_TypeDef *pUART)
 {
 	//tx init (A09)
 	pGPIO->MODER &= ~(0x3UL << (TX_PIN * 2));
-	pGPIO->MODER |= (2UL << (TX_PIN * 2));
+	pGPIO->MODER |= (2U << (TX_PIN * 2));
 
 	//rx init(A10)
 	pGPIO->MODER &= ~(0x3UL << (RX_PIN * 2));
@@ -31,7 +31,7 @@ void drone_uart_init(GPIO_TypeDef *pGPIO, USART_TypeDef *pUART)
 
 	pGPIO->PUPDR |= (1UL << 18) | (1UL << 20);	//pull up
 	pGPIO->OSPEEDR |= (3UL << 20) | (3UL << 18); //speed
-	//pGPIO->OTYPER |= (1 << 9) | (1 << 10);	//open drain
+
 	//alternate function setup
 	pGPIO->AFR[1] |= (0x7UL << 4) | (0x7UL << 8);
 

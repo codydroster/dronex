@@ -21,8 +21,8 @@ pGPIO->AFR[0] |= (7U << XBEE_RX_PIN*4) | (7U << XBEE_TX_PIN*4);	//alternate func
 
 //UART setup
 
-pUART->CR1 |= (1 << 14); 			//CMIE interrupt
-pUART->BRR = 0xD0UL;				// 115200 BAUD
+pUART->CR1 |= (1 << 5); 			//CMIE interrupt ****changed to RXNE
+pUART->BRR = 0xD0UL;				// 115200 BAUD	****9600
 pUART->CR2 |= (0x68 << 24); 	//ADD[7:0]
 pUART->CR1 |= (1 << 0);				//USART Enable
 pUART->CR1 |= (1 << 3) | (1 << 2); 	//TX, RX Enable

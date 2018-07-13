@@ -42,7 +42,6 @@ void drone_uart_init(GPIO_TypeDef *pGPIO, USART_TypeDef *pUART)
 	//BAUD rate
 	pUART->BRR = 0xD0UL;
 
-
 	//pUART->CR2 |= (1 <<19);	//MSB
 	pUART->CR1 |= (1 << 0); //USART Enable
 
@@ -62,7 +61,7 @@ void uart_transmit(USART_TypeDef *pUART)
 
 	for(int i = 0; i < 16; i++){
 		pUART->TDR = transmit_data[i];
-		while(!(pUART->ISR & (1 << 7)));
+		while(!(pUART->ISR & (1 << 7)));	//transmit data register flag
 
 
 	}

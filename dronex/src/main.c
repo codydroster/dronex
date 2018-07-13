@@ -27,8 +27,15 @@ USART_TypeDef *pUART1 = USART1;
 USART_TypeDef *pUART2 = USART2;
 
 //TIM2 typedef
-
 TIM_TypeDef *pTIM2 = TIM2;
+
+//DMA
+DMA_Channel_TypeDef *pDMA1C6 = DMA1_Channel6;
+DMA_TypeDef *pDMA1 = DMA1;
+DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
+
+
+void DMA_init(void);
 
 
 
@@ -40,12 +47,24 @@ uint16_t throttle_value;
 
 uint16_t yaw_trans;
 uint16_t yaw_value;
+
+uint16_t roll_trans;
+uint16_t roll_value;
+
+uint16_t pitch_trans;
+uint16_t pitch_value;
+
+volatile uint16_t trans_array[5];
+
+volatile uint16_t temp_read;
+
 int main(void)
 {
 
 
 
 	system_init();
+	DMA_init();
 	drone_uart_init(pGPIOA, pUART1);
 	xbee_uart_init(pGPIOA, pUART2);
 
@@ -55,45 +74,40 @@ int main(void)
 	pGPIOA->MODER |= (1U << 0);	//output
 
 	//pGPIOA->ODR |= (1U << 0);
-
-	pUART2->TDR |= 0xAD;
-
-
-	throttle_value =  0U;
-	throttle_trans = (0x8000UL | (throttle_value + 24UL));
-
-	yaw_value = 1000UL;
-	yaw_trans =  (0x1800UL | (yaw_value + 24UL));
+	pUART2->CR3 |= (1 << 6);
 
 
-
-////////////////////////////////////////////////////////////////////////////////////////
-	transmit_data[0] = 0x0;	// missed frames [1]
-	transmit_data[1] = 0x0; // missed frames [2]
-
-	transmit_data[2] = (throttle_trans >> 8UL);	// channel 1	//throttle
-	transmit_data[3] = (throttle_trans  & 0xFFUL);
-
-	transmit_data[4] = 0xCUL; // channel 2		//roll
-	transmit_data[5] = 0x0;
-
-	transmit_data[6] = 0x14UL; // channel 3		//pitch
-	transmit_data[7] = 0x0;
-
-	transmit_data[8] = (yaw_trans >> 8UL); // channel 4		//yaw
-	transmit_data[9] = (yaw_trans & 0xFFUL);
-
-	transmit_data[10] = 0xff;
-	transmit_data[11] = 0xff;
-	transmit_data[12] = 0xff;
-	transmit_data[13] = 0xff;
-	transmit_data[14] = 0xff;
-	transmit_data[15] = 0xff;
+	while(1)
+		{
 
 
-	return 0;
+		throttle_value =  (trans_array[1] & 0xFFF);
+		throttle_trans = (0x8000U | (throttle_value + 24U));
+
+		roll_value = (trans_array[2] & 0xFFF);
+		roll_trans =  (0x800U | (roll_value + 24U));
+
+		pitch_value = (trans_array[3] & 0xFFF);
+		pitch_trans =  (0x1000U | (pitch_value + 24U));
+
+		yaw_value = (trans_array[4] & 0XFFF);
+		yaw_trans =  (0x1800U | (yaw_value + 24U));
 
 
+
+
+
+
+	update_channel_values();
+
+
+
+
+
+
+
+}
+return 0;
 }
 
 
@@ -106,14 +120,31 @@ uart_transmit(pUART1);
 }
 
 
-void USART2_IRQHandler(void)
+void USART2_IRQHandler(void)	//
 {
 
-	pUART2->ICR |= (1UL << 17);	//clear Character match flag
-	pGPIOA->ODR ^= (1 << 0);
-	pUART2->RQR |= (1 << 3);	//clear rx
+pUART2->ICR |= (1 << 3); //overrun
+
+
 }
 
+
+
+void DMA_init(void)
+{
+
+
+	pDMA1C6->CPAR = (uint32_t) &pUART2->RDR;
+	pDMA1C6->CMAR = (uint32_t) trans_array;
+
+	pDMA1C6->CNDTR = 10U;	//four bytes
+	pDMA1SEL->CSELR |= (2U << 20);	//channel selection
+	pDMA1C6->CCR |= (1 << 7);	//memory increment
+	pDMA1C6->CCR |= (1 << 5);
+	pDMA1C6->CCR |= (1 << 0); 	//EN
+
+
+}
 
 void system_init(void)
 {
@@ -144,13 +175,44 @@ void system_init(void)
 	//TIM2 CLK
 	pRCC->APB1ENR1 |= (1 << 0);
 
+	pRCC->AHB1ENR |= (1 << 0);
 
 
 	timer_init(pTIM2);
+
+}
+
+
+
+void update_channel_values(void)
+{
+
+	transmit_data[0] = 0x0;	// missed frames [1]
+	transmit_data[1] = 0x0; // missed frames [2]
+
+	transmit_data[2] = (throttle_trans >> 8UL);	// channel 1	//throttle
+	transmit_data[3] = (throttle_trans  & 0xFFUL);
+
+	transmit_data[4] = (roll_trans >> 8UL); // channel 2		//roll
+	transmit_data[5] = (roll_trans & 0xFFUL);
+
+	transmit_data[6] = (pitch_trans >> 8UL); // channel 3		//pitch
+	transmit_data[7] = (pitch_trans & 0xFFUL);
+
+	transmit_data[8] = (yaw_trans >> 8UL); // channel 4		//yaw
+	transmit_data[9] = (yaw_trans & 0xFFUL);
+
+	transmit_data[10] = 0xff;
+	transmit_data[11] = 0xff;
+	transmit_data[12] = 0xff;
+	transmit_data[13] = 0xff;
+	transmit_data[14] = 0xff;
+	transmit_data[15] = 0xff;
 
 
 
 
 }
+
 
 

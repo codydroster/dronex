@@ -45,21 +45,27 @@ void USART2_IRQHandler(void);
 uint16_t throttle_trans;
 uint16_t throttle_value;
 
-uint16_t yaw_trans;
-uint16_t yaw_value;
-
 uint16_t roll_trans;
 uint16_t roll_value;
 
 uint16_t pitch_trans;
 uint16_t pitch_value;
 
+uint16_t yaw_trans;
+uint16_t yaw_value;
+
 volatile uint16_t trans_array[5];
 
-volatile uint16_t temp_read;
+volatile uint16_t uart_recieve;
 
 int main(void)
 {
+	//init_ctrl_values();
+
+
+
+
+
 
 
 
@@ -80,19 +86,26 @@ int main(void)
 	while(1)
 		{
 
-
-		throttle_value =  (trans_array[1] & 0xFFF);
+		if(((uart_recieve >> 12) & 0xF) == 0) {
+			throttle_value =  (uart_recieve & 0xFFF);
 		throttle_trans = (0x8000U | (throttle_value + 24U));
+		} else
 
-		roll_value = (trans_array[2] & 0xFFF);
+
+		if(((uart_recieve >> 12) & 0xF) == 1) {
+		roll_value = (uart_recieve & 0xFFF);
 		roll_trans =  (0x800U | (roll_value + 24U));
+		} else
 
-		pitch_value = (trans_array[3] & 0xFFF);
+		if(((uart_recieve >> 12) & 0xF) == 2) {
+		pitch_value = (uart_recieve & 0xFFF);
 		pitch_trans =  (0x1000U | (pitch_value + 24U));
+		} else
 
-		yaw_value = (trans_array[4] & 0XFFF);
+		if(((uart_recieve >> 12) & 0xF) == 3) {
+		yaw_value = (uart_recieve & 0XFFF);
 		yaw_trans =  (0x1800U | (yaw_value + 24U));
-
+		}
 
 
 
@@ -135,9 +148,9 @@ void DMA_init(void)
 
 
 	pDMA1C6->CPAR = (uint32_t) &pUART2->RDR;
-	pDMA1C6->CMAR = (uint32_t) trans_array;
+	pDMA1C6->CMAR = (uint32_t) &uart_recieve;
 
-	pDMA1C6->CNDTR = 10U;	//four bytes
+	pDMA1C6->CNDTR = 2U;	//2 bytes
 	pDMA1SEL->CSELR |= (2U << 20);	//channel selection
 	pDMA1C6->CCR |= (1 << 7);	//memory increment
 	pDMA1C6->CCR |= (1 << 5);
@@ -213,6 +226,18 @@ void update_channel_values(void)
 
 
 }
+void init_ctrl_values(void)
+{
+		throttle_value = 0x00;
+		roll_value = 0xE8;
+		pitch_value = 0xE8;
+		yaw_value = 0xE8;
 
+		throttle_trans = (0x8000U | (throttle_value + 24U));
+		roll_trans =  (0x800U | (roll_value + 24U));
+		pitch_trans =  (0x1000U | (pitch_value + 24U));
+		yaw_trans =  (0x1800U | (yaw_value + 24U));
+
+}
 
 

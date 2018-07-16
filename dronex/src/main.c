@@ -35,12 +35,6 @@ DMA_TypeDef *pDMA1 = DMA1;
 DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
 
 
-void DMA_init(void);
-
-
-
-void TIM2_IRQHandler(void);
-void USART2_IRQHandler(void);
 
 uint16_t throttle_trans;
 uint16_t throttle_value;
@@ -54,21 +48,14 @@ uint16_t pitch_value;
 uint16_t yaw_trans;
 uint16_t yaw_value;
 
-volatile uint16_t trans_array[5];
+uint16_t AUX1_trans;
+uint16_t AUX1_value;
+
 
 volatile uint16_t uart_recieve;
 
 int main(void)
 {
-	//init_ctrl_values();
-
-
-
-
-
-
-
-
 	system_init();
 	DMA_init();
 	drone_uart_init(pGPIOA, pUART1);
@@ -82,44 +69,14 @@ int main(void)
 	//pGPIOA->ODR |= (1U << 0);
 	pUART2->CR3 |= (1 << 6);
 
-
-	while(1)
-		{
-
-		if(((uart_recieve >> 12) & 0xF) == 0) {
-			throttle_value =  (uart_recieve & 0xFFF);
-		throttle_trans = (0x8000U | (throttle_value + 24U));
-		} else
-
-
-		if(((uart_recieve >> 12) & 0xF) == 1) {
-		roll_value = (uart_recieve & 0xFFF);
-		roll_trans =  (0x800U | (roll_value + 24U));
-		} else
-
-		if(((uart_recieve >> 12) & 0xF) == 2) {
-		pitch_value = (uart_recieve & 0xFFF);
-		pitch_trans =  (0x1000U | (pitch_value + 24U));
-		} else
-
-		if(((uart_recieve >> 12) & 0xF) == 3) {
-		yaw_value = (uart_recieve & 0XFFF);
-		yaw_trans =  (0x1800U | (yaw_value + 24U));
-		}
-
-
-
-
+while(1) {
 
 	update_channel_values();
 
 
 
+	}
 
-
-
-
-}
 return 0;
 }
 
@@ -127,20 +84,46 @@ return 0;
 
 void TIM2_IRQHandler(void)
 {
-pTIM2->SR &= ~(1UL << 0);
+pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
 uart_transmit(pUART1);
 
 }
 
 
-void USART2_IRQHandler(void)	//
-{
 
-pUART2->ICR |= (1 << 3); //overrun
+
+//interrupt after uart DMA reads in 2 bytes to uart_recieve.
+void DMA1_Channel6_IRQHandler(void)
+{
+		if(((uart_recieve >> 12) & 0xF) == 1) {
+			throttle_value =  (uart_recieve & 0xFFF);
+			throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
+			} else
+
+
+		if(((uart_recieve >> 12) & 0xF) == 2) {
+			roll_value = (uart_recieve & 0xFFF);
+			roll_trans = (uint16_t) (0x800U | (roll_value + 24U));
+			} else
+
+		if(((uart_recieve >> 12) & 0xF) == 3) {
+			pitch_value = (uart_recieve & 0xFFF);
+			pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
+			} else
+
+		if(((uart_recieve >> 12) & 0xF) == 4) {
+			yaw_value = (uart_recieve & 0XFFF);
+			yaw_trans = (uint16_t) (0x1800U | (yaw_value + 24U));
+			} else
+
+		if(((uart_recieve >> 12) & 0xF) == 5) {
+			AUX1_value = (uart_recieve & 0XFFF);
+			AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
+			}
+		pDMA1->IFCR |= (1 << 21);
 
 
 }
-
 
 
 void DMA_init(void)
@@ -153,7 +136,8 @@ void DMA_init(void)
 	pDMA1C6->CNDTR = 2U;	//2 bytes
 	pDMA1SEL->CSELR |= (2U << 20);	//channel selection
 	pDMA1C6->CCR |= (1 << 7);	//memory increment
-	pDMA1C6->CCR |= (1 << 5);
+	pDMA1C6->CCR |= (1 << 5);	//circular mode
+	pDMA1C6->CCR |= (1 << 1); 	//transfer complete interrupt enable
 	pDMA1C6->CCR |= (1 << 0); 	//EN
 
 
@@ -173,7 +157,7 @@ void system_init(void)
 
 	//interrupts
 	NVIC_EnableIRQ(TIM2_IRQn);
-	NVIC_EnableIRQ(USART2_IRQn);
+	NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
 	__enable_irq();
 
@@ -203,20 +187,21 @@ void update_channel_values(void)
 	transmit_data[0] = 0x0;	// missed frames [1]
 	transmit_data[1] = 0x0; // missed frames [2]
 
-	transmit_data[2] = (throttle_trans >> 8UL);	// channel 1	//throttle
+	transmit_data[2] = (uint8_t) (throttle_trans >> 8UL);	// channel 1	//throttle
 	transmit_data[3] = (throttle_trans  & 0xFFUL);
 
-	transmit_data[4] = (roll_trans >> 8UL); // channel 2		//roll
+	transmit_data[4] = (uint8_t) (roll_trans >> 8UL); // channel 2		//roll
 	transmit_data[5] = (roll_trans & 0xFFUL);
 
-	transmit_data[6] = (pitch_trans >> 8UL); // channel 3		//pitch
+	transmit_data[6] = (uint8_t) (pitch_trans >> 8UL); // channel 3		//pitch
 	transmit_data[7] = (pitch_trans & 0xFFUL);
 
-	transmit_data[8] = (yaw_trans >> 8UL); // channel 4		//yaw
+	transmit_data[8] = (uint8_t) (yaw_trans >> 8UL); // channel 4		//yaw
 	transmit_data[9] = (yaw_trans & 0xFFUL);
 
-	transmit_data[10] = 0xff;
-	transmit_data[11] = 0xff;
+	transmit_data[10] = (uint8_t) (AUX1_trans >> 8UL); // channel 5 AUX1
+	transmit_data[11] = (AUX1_trans & 0xFFUL);
+
 	transmit_data[12] = 0xff;
 	transmit_data[13] = 0xff;
 	transmit_data[14] = 0xff;
@@ -226,18 +211,7 @@ void update_channel_values(void)
 
 
 }
-void init_ctrl_values(void)
-{
-		throttle_value = 0x00;
-		roll_value = 0xE8;
-		pitch_value = 0xE8;
-		yaw_value = 0xE8;
 
-		throttle_trans = (0x8000U | (throttle_value + 24U));
-		roll_trans =  (0x800U | (roll_value + 24U));
-		pitch_trans =  (0x1000U | (pitch_value + 24U));
-		yaw_trans =  (0x1800U | (yaw_value + 24U));
 
-}
 
 

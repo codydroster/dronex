@@ -21,13 +21,16 @@ double answer2;
 //initialize port A
 GPIO_TypeDef *pGPIOA = GPIOA;
 
+//port B
+GPIO_TypeDef *pGPIOB = GPIOB;
+
 //initialize clock
 RCC_TypeDef *pRCC = RCC;
 
-//UART init
+//UART init - FC
 USART_TypeDef *pUART1 = USART1;
 
-//UART2 init
+//UART2 init - xbee
 USART_TypeDef *pUART2 = USART2;
 
 //TIM2 typedef
@@ -72,6 +75,13 @@ int main(void)
 
 	//pGPIOA->ODR |= (1U << 0);
 	pUART2->CR3 |= (1 << 6);
+
+	//led
+	pGPIOB->MODER |= (1 << 4); //output
+	pGPIOB->ODR |= (1 << 2); //on
+
+	pGPIOA->MODER |= (1 << 20);
+	pGPIOA->ODR |= (1 << 10);
 
 while(1) {
 
@@ -152,34 +162,37 @@ void system_init(void)
 
 	while(!(pRCC->CR & (1 << 1)));
 
-	//Frequency Setup
-	pRCC->CR &= ~(0xfUL << 4);	//clear MSI
-	pRCC->CR |= (0x9UL << 4);	//MSI range	24MHz
-	pRCC->CCIPR |= (1 << 0);	//UART clock select //sys clock
-	pRCC->CFGR |= (2UL << 24);	//MSI Clock
-	pRCC->CR |= (1 << 3);	//MSI range in CR
+		//Frequency Setup
+		pRCC->CR &= ~(0xfUL << 4);	//clear MSI
+		pRCC->CR |= (0x9UL << 4);	//MSI range	24MHz
+		pRCC->CCIPR |= (1 << 0);	//UART clock select //sys clock
+		pRCC->CFGR |= (2UL << 24);	//MSI Clock
+		pRCC->CR |= (1 << 3);	//MSI range in CR
 
-	//interrupts
-	NVIC_EnableIRQ(TIM2_IRQn);
-	NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+		//interrupts
+		NVIC_EnableIRQ(TIM2_IRQn);
+		NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
-	__enable_irq();
+		__enable_irq();
 
-	//peripheral clock PORTA
-	pRCC->AHB2ENR |= (1 << 0);
+		//peripheral clock PORTA
+		pRCC->AHB2ENR |= (1 << 0);
 
-	//USART1 clock enable
-	pRCC->APB2ENR |= (1 << 14);
-	//USART2 clock enable
-	pRCC->APB1ENR1 |= (1 << 17);
+		//clock PORTB
+		pRCC->AHB2ENR |= (1 << 1);
 
-	//TIM2 CLK
-	pRCC->APB1ENR1 |= (1 << 0);
+		//USART1 clock enable
+		pRCC->APB2ENR |= (1 << 14);
+		//USART2 clock enable
+		pRCC->APB1ENR1 |= (1 << 17);
 
-	pRCC->AHB1ENR |= (1 << 0);
+		//TIM2 CLK
+		pRCC->APB1ENR1 |= (1 << 0);
+
+		pRCC->AHB1ENR |= (1 << 0);
 
 
-	timer_init(pTIM2);
+		timer_init(pTIM2);
 
 }
 

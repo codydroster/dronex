@@ -28,7 +28,7 @@ GPIO_TypeDef *pGPIOB = GPIOB;
 RCC_TypeDef *pRCC = RCC;
 
 //UART init - FC
-USART_TypeDef *pUART1 = USART1;
+USART_TypeDef *pUART1 = UART4;
 
 //UART2 init - xbee
 USART_TypeDef *pUART2 = USART2;
@@ -79,6 +79,7 @@ int main(void)
 	//led
 	pGPIOB->MODER |= (1 << 4); //output
 	pGPIOB->ODR |= (1 << 2); //on
+	pGPIOB->ODR &= ~(1 << 2); //off
 
 	pGPIOA->MODER |= (1 << 20);
 	pGPIOA->ODR |= (1 << 10);

@@ -15,8 +15,7 @@
 #define BASE_ADDRESS 0X20000000
 
 char const my_data[] = "hello world";
-float_t answer;
-double answer2;
+
 
 //initialize port A
 GPIO_TypeDef *pGPIOA = GPIOA;
@@ -78,8 +77,8 @@ int main(void)
 
 	//led
 	pGPIOB->MODER |= (1 << 4); //output
-	pGPIOB->ODR |= (1 << 2); //on
-	pGPIOB->ODR &= ~(1 << 2); //off
+	//pGPIOB->ODR |= (1 << 2); //on
+	pGPIOB->ODR &= ~(1UL << 2); //off
 
 	pGPIOA->MODER |= (1 << 20);
 	pGPIOA->ODR |= (1 << 10);
@@ -88,7 +87,7 @@ while(1) {
 
 	update_channel_values();
 
-	answer2 = atanf(.5);
+	double answer = atan(.7);
 
 	}
 
@@ -190,6 +189,7 @@ void system_init(void)
 		//TIM2 CLK
 		pRCC->APB1ENR1 |= (1 << 0);
 
+		//DMA
 		pRCC->AHB1ENR |= (1 << 0);
 
 

@@ -10,5 +10,5 @@ void TIM2_IRQHandler(void);
 
 void DMA_init(void);
 
-void DMA1_Channel6_IRQHandler(void);
+void DMA2_Channel2_IRQHandler(void);
 

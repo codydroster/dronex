@@ -23,22 +23,28 @@ GPIO_TypeDef *pGPIOA = GPIOA;
 //port B
 GPIO_TypeDef *pGPIOB = GPIOB;
 
+//port C
+GPIO_TypeDef *pGPIOC = GPIOC;
+
+//port D
+GPIO_TypeDef *pGPIOD = GPIOD;
+
 //initialize clock
 RCC_TypeDef *pRCC = RCC;
 
 //UART init - FC
-USART_TypeDef *pUART1 = UART4;
+USART_TypeDef *pUART2 = USART2;
 
 //UART2 init - xbee
-USART_TypeDef *pUART2 = USART2;
+USART_TypeDef *pUART5 = UART5;
 
 //TIM2 typedef
 TIM_TypeDef *pTIM2 = TIM2;
 
 //DMA
-DMA_Channel_TypeDef *pDMA1C6 = DMA1_Channel6;
-DMA_TypeDef *pDMA1 = DMA1;
-DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
+DMA_Channel_TypeDef *pDMA2C5 = DMA2_Channel2;
+DMA_TypeDef *pDMA2 = DMA2;
+DMA_Request_TypeDef *pDMA2SEL = DMA2_CSELR;
 
 
 
@@ -64,30 +70,17 @@ int main(void)
 {
 	system_init();
 	DMA_init();
-	drone_uart_init(pGPIOA, pUART1);
-	xbee_uart_init(pGPIOA, pUART2);
+	drone_uart_init(pGPIOA, pUART2);
+	xbee_uart_init(pGPIOD, pGPIOC, pUART5);
 
 
-	//GPIO output pin.
-	pGPIOA->MODER &= ~(3U << 0); //clear
-	pGPIOA->MODER |= (1U << 0);	//output
-
-	//pGPIOA->ODR |= (1U << 0);
-	pUART2->CR3 |= (1 << 6);
-
-	//led
-	pGPIOB->MODER |= (1 << 4); //output
-	//pGPIOB->ODR |= (1 << 2); //on
-	pGPIOB->ODR &= ~(1UL << 2); //off
-
-	pGPIOA->MODER |= (1 << 20);
-	pGPIOA->ODR |= (1 << 10);
 
 while(1) {
 
+
 	update_channel_values();
 
-	double answer = atan(.7);
+
 
 	}
 
@@ -99,7 +92,7 @@ return 0;
 void TIM2_IRQHandler(void)
 {
 pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
-uart_transmit(pUART1);
+uart_transmit(pUART2);
 
 }
 
@@ -107,7 +100,7 @@ uart_transmit(pUART1);
 
 
 //interrupt after uart DMA reads in 2 bytes to uart_recieve.
-void DMA1_Channel6_IRQHandler(void)
+void DMA2_Channel2_IRQHandler(void)
 {
 		if(((uart_recieve >> 12) & 0xF) == 1) {
 			throttle_value =  (uart_recieve & 0xFFF);
@@ -134,8 +127,7 @@ void DMA1_Channel6_IRQHandler(void)
 			AUX1_value = (uart_recieve & 0XFFF);
 			AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
 			}
-		pDMA1->IFCR |= (1 << 21);
-
+		pDMA2->IFCR |= (1 << 21);
 
 }
 
@@ -144,15 +136,15 @@ void DMA_init(void)
 {
 
 
-	pDMA1C6->CPAR = (uint32_t) &pUART2->RDR;
-	pDMA1C6->CMAR = (uint32_t) &uart_recieve;
+	pDMA2C5->CPAR = (uint32_t) &pUART5->RDR;
+	pDMA2C5->CMAR = (uint32_t) &uart_recieve;
 
-	pDMA1C6->CNDTR = 2U;	//2 bytes
-	pDMA1SEL->CSELR |= (2U << 20);	//channel selection
-	pDMA1C6->CCR |= (1 << 7);	//memory increment
-	pDMA1C6->CCR |= (1 << 5);	//circular mode
-	pDMA1C6->CCR |= (1 << 1); 	//transfer complete interrupt enable
-	pDMA1C6->CCR |= (1 << 0); 	//EN
+	pDMA2C5->CNDTR = 2U;	//2 bytes
+	pDMA2SEL->CSELR |= (2U << 4);	//channel selection
+	pDMA2C5->CCR |= (1 << 7);	//memory increment
+	pDMA2C5->CCR |= (1 << 5);	//circular mode
+	pDMA2C5->CCR |= (1 << 1); 	//transfer complete interrupt enable
+	pDMA2C5->CCR |= (1 << 0); 	//EN
 
 
 }
@@ -160,18 +152,18 @@ void DMA_init(void)
 void system_init(void)
 {
 
-	while(!(pRCC->CR & (1 << 1)));
+		while(!(pRCC->CR & (1 << 1)));
 
 		//Frequency Setup
 		pRCC->CR &= ~(0xfUL << 4);	//clear MSI
 		pRCC->CR |= (0x9UL << 4);	//MSI range	24MHz
-		pRCC->CCIPR |= (1 << 0);	//UART clock select //sys clock
+		//pRCC->CCIPR |= (1 << 2) | (1 << 8);	//UART clock select //sys clock
 		pRCC->CFGR |= (2UL << 24);	//MSI Clock
 		pRCC->CR |= (1 << 3);	//MSI range in CR
 
 		//interrupts
-		NVIC_EnableIRQ(TIM2_IRQn);
-		NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+		NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
+		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 
 		__enable_irq();
 
@@ -181,16 +173,23 @@ void system_init(void)
 		//clock PORTB
 		pRCC->AHB2ENR |= (1 << 1);
 
-		//USART1 clock enable
-		pRCC->APB2ENR |= (1 << 14);
+		//clock PORTC
+		pRCC->AHB2ENR |= (1 << 2);
+
+		//clock PORTD
+		pRCC->AHB2ENR |= (1 << 3);
+
 		//USART2 clock enable
 		pRCC->APB1ENR1 |= (1 << 17);
+
+		//USART5 clock enable
+		pRCC->APB1ENR1 |= (1 << 20);
 
 		//TIM2 CLK
 		pRCC->APB1ENR1 |= (1 << 0);
 
 		//DMA
-		pRCC->AHB1ENR |= (1 << 0);
+		pRCC->AHB1ENR |= (1 << 1);
 
 
 		timer_init(pTIM2);

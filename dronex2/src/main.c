@@ -37,7 +37,7 @@ RCC_TypeDef *pRCC = RCC;
 //UART init - FC
 USART_TypeDef *pUART2 = USART2;
 
-//UART2 init - xbee
+//UART2 init - Xbee
 USART_TypeDef *pUART5 = UART5;
 
 //TIM2 typedef
@@ -67,21 +67,22 @@ uint16_t AUX1_value;
 
 
 volatile uint8_t uart_receive[12];
-//uint8_t uart_index;
+uint8_t uart_index;
 
 
 int main(void)
 {
 	system_init();
-	//DMA_init();
+	DMA_init();
 	drone_uart_init(pGPIOA, pUART2);
 	xbee_uart_init(pGPIOD, pGPIOC, pUART5);
-
+	pDMA2C2->CCR |= (1 << 0);	//enable DMA Channel 2
 
 
 
 	while(1) {
-		int i = 4;
+
+		idle_line_reset();
 		update_channel_values();
 
 	}
@@ -91,40 +92,46 @@ return 0;
 
 
 
+
+
 void TIM2_IRQHandler(void)
 {
+
+	uart_transmit(pUART2);
 pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
-uart_transmit(pUART2);
 
 }
 
-/*void UART5_IRQHandler(void)
+
+//trys to reset DMA to initial values if UART out of sync
+void idle_line_reset(void)
 {
-
-	//uart_receive[uart_index] = (uint8_t) pUART5->RDR;
-
-	}
-*/
-
-
+	if((pUART5->ISR >> 4) & 1U) {					//if idle line
+				pDMA2C2->CCR &= ~(1U << 0);					//disable DMA Channel 2
+				pDMA2C2->CMAR = (uint32_t) &uart_receive;	//reset address
+				pDMA2C2->CNDTR = 12U;						//reset DMA counter
+				pDMA2C2->CCR |= (1 << 0);	//enable DMA Channel 2
+				pUART5->ICR |= (1U << 4);					//clear flag idle
+			}
+}
 
 
 
 
 
 //interrupt after uart DMA reads in 12 bytes to uart_recieve.
-/*void DMA2_Channel2_IRQHandler(void)
+void DMA2_Channel2_IRQHandler(void)
 {
 
 
 
 	if(uart_receive[0] == 0x42 && uart_receive[1] ==0x43){
 
-	throttle_value = (uint16_t) ((uart_receive[2] << 8) | (uart_receive[3] & 0xff));
-	roll_value = (uint16_t) ((uart_receive[4] << 8) | (uart_receive[5] & 0xff));
-	pitch_value = (uint16_t) ((uart_receive[6] << 8) | (uart_receive[7] & 0xff));
-	yaw_value = (uint16_t) ((uart_receive[8] << 8) | (uart_receive[9] & 0xff));
-	AUX1_value = (uint16_t) ((uart_receive[10] << 8) | (uart_receive[11] & 0xff));
+		throttle_value = (uint16_t) ((uart_receive[2] << 8) | (uart_receive[3] & 0xff));
+		roll_value = (uint16_t) ((uart_receive[4] << 8) | (uart_receive[5] & 0xff));
+		pitch_value = (uint16_t) ((uart_receive[6] << 8) | (uart_receive[7] & 0xff));
+		yaw_value = (uint16_t) ((uart_receive[8] << 8) | (uart_receive[9] & 0xff));
+		AUX1_value = (uint16_t) ((uart_receive[10] << 8) | (uart_receive[11] & 0xff));
 
 	}
 
@@ -135,19 +142,14 @@ uart_transmit(pUART2);
 	AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
 
 
-
-
-
-	test = 0x65;
-
 	pDMA2->IFCR |= (1 << 5); //transfer complete flag clear
 
-}*/
+}
 
 
 
 
-/*void DMA_init(void)
+void DMA_init(void)
 {
 
 
@@ -157,18 +159,17 @@ uart_transmit(pUART2);
 	pDMA2C2->CNDTR = 12U;	//12 bytes
 	pDMA2SEL->CSELR |= (2U << 4);	//channel selection
 	pDMA2C2->CCR |= (1 << 7);	//memory increment
-	pDMA2C2->CCR |= (1 << 5);	//circular mode
+	//pDMA2C2->CCR |= (1 << 5);	//circular mode
 	pDMA2C2->CCR |= (1 << 1); 	//transfer complete interrupt enable
-	//pDMA2C2->CCR |= (1 << 3);	//transfer error int enable
 
 
 
-}*/
+}
 
 void system_init(void)
 {
 
-	//	while(!((pRCC->CR >> 1) & 1U));
+		while(!((pRCC->CR >> 1) & 1U));	//Wait until MSI oscillator is stable.
 
 		//Frequency Setup
 		pRCC->CR &= ~(0xfUL << 4);	//clear MSI
@@ -178,9 +179,9 @@ void system_init(void)
 		pRCC->CR |= (1 << 3);	//MSI range in CR
 
 		//interrupts
-		//NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
-		//NVIC_EnableIRQ(DMA2_Channel2_IRQn);
-		NVIC_EnableIRQ(UART5_IRQn);
+		NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
+		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
+
 		__enable_irq();
 
 		//peripheral clock PORTA
@@ -213,7 +214,7 @@ void system_init(void)
 }
 
 
-
+//Array  to be transmitted to FC, Spectrum 2048 protocol.
 void update_channel_values(void)
 {
 

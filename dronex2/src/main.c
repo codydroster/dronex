@@ -14,6 +14,8 @@
 
 #define BASE_ADDRESS 0X20000000
 
+uint8_t test;
+
 char const my_data[] = "hello world";
 
 
@@ -42,7 +44,7 @@ USART_TypeDef *pUART5 = UART5;
 TIM_TypeDef *pTIM2 = TIM2;
 
 //DMA
-DMA_Channel_TypeDef *pDMA2C5 = DMA2_Channel2;
+DMA_Channel_TypeDef *pDMA2C2 = DMA2_Channel2;
 DMA_TypeDef *pDMA2 = DMA2;
 DMA_Request_TypeDef *pDMA2SEL = DMA2_CSELR;
 
@@ -64,23 +66,23 @@ uint16_t AUX1_trans;
 uint16_t AUX1_value;
 
 
-volatile uint16_t uart_recieve;
+volatile uint8_t uart_receive[12];
+//uint8_t uart_index;
+
 
 int main(void)
 {
 	system_init();
-	DMA_init();
+	//DMA_init();
 	drone_uart_init(pGPIOA, pUART2);
 	xbee_uart_init(pGPIOD, pGPIOC, pUART5);
 
 
 
-while(1) {
 
-
-	update_channel_values();
-
-
+	while(1) {
+		int i = 4;
+		update_channel_values();
 
 	}
 
@@ -96,63 +98,77 @@ uart_transmit(pUART2);
 
 }
 
-
-
-
-//interrupt after uart DMA reads in 2 bytes to uart_recieve.
-void DMA2_Channel2_IRQHandler(void)
+/*void UART5_IRQHandler(void)
 {
-		if(((uart_recieve >> 12) & 0xF) == 1) {
-			throttle_value =  (uart_recieve & 0xFFF);
-			throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
-			} else
+
+	//uart_receive[uart_index] = (uint8_t) pUART5->RDR;
+
+	}
+*/
 
 
-		if(((uart_recieve >> 12) & 0xF) == 2) {
-			roll_value = (uart_recieve & 0xFFF);
-			roll_trans = (uint16_t) (0x800U | (roll_value + 24U));
-			} else
-
-		if(((uart_recieve >> 12) & 0xF) == 3) {
-			pitch_value = (uart_recieve & 0xFFF);
-			pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
-			} else
-
-		if(((uart_recieve >> 12) & 0xF) == 4) {
-			yaw_value = (uart_recieve & 0XFFF);
-			yaw_trans = (uint16_t) (0x1800U | (yaw_value + 24U));
-			} else
-
-		if(((uart_recieve >> 12) & 0xF) == 5) {
-			AUX1_value = (uart_recieve & 0XFFF);
-			AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
-			}
-		pDMA2->IFCR |= (1 << 21);
-
-}
 
 
-void DMA_init(void)
+
+
+
+//interrupt after uart DMA reads in 12 bytes to uart_recieve.
+/*void DMA2_Channel2_IRQHandler(void)
 {
 
 
-	pDMA2C5->CPAR = (uint32_t) &pUART5->RDR;
-	pDMA2C5->CMAR = (uint32_t) &uart_recieve;
 
-	pDMA2C5->CNDTR = 2U;	//2 bytes
+	if(uart_receive[0] == 0x42 && uart_receive[1] ==0x43){
+
+	throttle_value = (uint16_t) ((uart_receive[2] << 8) | (uart_receive[3] & 0xff));
+	roll_value = (uint16_t) ((uart_receive[4] << 8) | (uart_receive[5] & 0xff));
+	pitch_value = (uint16_t) ((uart_receive[6] << 8) | (uart_receive[7] & 0xff));
+	yaw_value = (uint16_t) ((uart_receive[8] << 8) | (uart_receive[9] & 0xff));
+	AUX1_value = (uint16_t) ((uart_receive[10] << 8) | (uart_receive[11] & 0xff));
+
+	}
+
+	throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
+	roll_trans = (uint16_t) (0x800U | (roll_value + 24U));
+	pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
+	yaw_trans = (uint16_t) (0x1800U | (yaw_value + 24U));
+	AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
+
+
+
+
+
+	test = 0x65;
+
+	pDMA2->IFCR |= (1 << 5); //transfer complete flag clear
+
+}*/
+
+
+
+
+/*void DMA_init(void)
+{
+
+
+	pDMA2C2->CPAR = (uint32_t) &pUART5->RDR;
+	pDMA2C2->CMAR = (uint32_t) &uart_receive;
+
+	pDMA2C2->CNDTR = 12U;	//12 bytes
 	pDMA2SEL->CSELR |= (2U << 4);	//channel selection
-	pDMA2C5->CCR |= (1 << 7);	//memory increment
-	pDMA2C5->CCR |= (1 << 5);	//circular mode
-	pDMA2C5->CCR |= (1 << 1); 	//transfer complete interrupt enable
-	pDMA2C5->CCR |= (1 << 0); 	//EN
+	pDMA2C2->CCR |= (1 << 7);	//memory increment
+	pDMA2C2->CCR |= (1 << 5);	//circular mode
+	pDMA2C2->CCR |= (1 << 1); 	//transfer complete interrupt enable
+	//pDMA2C2->CCR |= (1 << 3);	//transfer error int enable
 
 
-}
+
+}*/
 
 void system_init(void)
 {
 
-		while(!(pRCC->CR & (1 << 1)));
+	//	while(!((pRCC->CR >> 1) & 1U));
 
 		//Frequency Setup
 		pRCC->CR &= ~(0xfUL << 4);	//clear MSI
@@ -162,9 +178,9 @@ void system_init(void)
 		pRCC->CR |= (1 << 3);	//MSI range in CR
 
 		//interrupts
-		NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
-		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
-
+		//NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
+		//NVIC_EnableIRQ(DMA2_Channel2_IRQn);
+		NVIC_EnableIRQ(UART5_IRQn);
 		__enable_irq();
 
 		//peripheral clock PORTA

@@ -9,6 +9,7 @@
 #include "pindefines.h"
 
 
+
 void timer_init(TIM_TypeDef *pTIM)
 {
 	pTIM->ARR = 0x40740UL;

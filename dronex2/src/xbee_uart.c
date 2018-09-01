@@ -31,12 +31,12 @@ void xbee_uart_init(GPIO_TypeDef *pGPIOrx, GPIO_TypeDef *pGPIOtx, USART_TypeDef 
 
 	//UART setup
 
-	pUART->CR1 |= (1 << 5); 			//interrupt RXNE
+	pUART->CR1 |= (1 << 4); 			//interrupt idle line
 	pUART->BRR = 0xD0UL;				// 115200 BAUD
 
 	pUART->CR1 |= (1 << 0);				//USART Enable
 	pUART->CR1 |= (1 << 2) | (1 << 3); 	//RX, TX Enable
-	pUART->CR3 |= (1 << 6) | (1 << 7);	//D/MA Enable TX, RX
+	pUART->CR3 |= (1 << 6) | (1 << 7);	//DMA Enable TX, RX
 
 
 }

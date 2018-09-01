@@ -12,6 +12,7 @@
 #include "lidar.h"
 #include "main.h"
 #include "pindefines.h"
+#include "control.h"
 
 #include "math.h"
 
@@ -56,12 +57,18 @@ DMA_TypeDef *pDMA2 = DMA2;
 
 //DMA1
 DMA_Channel_TypeDef *pDMA1C3 = DMA1_Channel3;
+DMA_Channel_TypeDef *pDMASPIRX = DMA1_Channel4;
+DMA_Channel_TypeDef *pDMASPITX = DMA1_Channel5;
+
 DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
+
+
 
 
 //DMA2
 DMA_Channel_TypeDef *pDMA2C2 = DMA2_Channel2;
 DMA_Channel_TypeDef *pDMA2C1 = DMA2_Channel1;
+
 DMA_Request_TypeDef *pDMA2SEL = DMA2_CSELR;
 
 
@@ -94,7 +101,7 @@ uint8_t spi_index;
 int main(void)
 {
 	system_init();
-	DMA_init();
+	DMA_init_Xbee();
 	DMA_init_lidar();
 
 	drone_uart_init(pGPIOA, pUART2);
@@ -113,14 +120,12 @@ int main(void)
 
 	while(1) {
 
-		idle_line_reset_xbee();
-		if(!(pDMA1C3->CCR & 1U)){
-		//idle_line_reset_lidar();
-		}
+		pitch_value = 1100U;
+		pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
 		update_channel_values();
 		spi_index = 0;
-		read_imu_mult(STATUS_REG, pSPI2, pGPIOC);
-		//pUARTLID->TDR = (spi_receive[1] & 0xff);		//accel output temp
+		//read_imu_mult(STATUS_REG, pSPI2, pGPIOC);
+		//pUART5->TDR = lidar_transmit;		//accel output temp
 
 	}
 
@@ -133,41 +138,9 @@ return 0;
 
 
 
-//trys to reset DMA to initial values if UART out of sync
-void idle_line_reset_xbee(void)
-{
-	if((pUART5->ISR >> 4) & 1U) {					//if idle line
-		pDMA2C2->CCR &= ~(1U << 0);					//disable DMA Channel 2
-
-		pDMA2C2->CMAR = (uint32_t) &uart_receive;	//reset address
-		pDMA2C2->CNDTR = 12U;						//reset DMA counter
-		pDMA2C2->CCR |= (1 << 0);					//enable DMA Channel 2
-		pUART5->ICR |= (1U << 4);					//clear flag idle
 
 
-		}
-}
-
-
-void idle_line_reset_lidar(void)
-{
-	if((pUARTLID->ISR >> 4) & 1U) {					//if idle line
-		//pDMA1C3->CCR &= ~(1U << 0);		//disable DMA Channel 2
-
-		pDMA1C3->CMAR = (uint32_t) &lidar_receive;	//reset address
-		pDMA1C3->CNDTR = 9U;						//reset DMA counter
-		pDMA1C3->CCR |= (1 << 0);					//enable DMA Channel 2
-		pUARTLID->ICR |= (1U << 4);			//clear flag idle
-
-
-		}
-}
-
-
-
-
-
-void DMA_init(void)
+void DMA_init_Xbee(void)	//xbee
 {
 
 	//channel 2
@@ -177,7 +150,7 @@ void DMA_init(void)
 	pDMA2C2->CNDTR = 12U;	//12 bytes
 	pDMA2SEL->CSELR |= (2U << 4);	//channel selection
 	pDMA2C2->CCR |= (1 << 7);	//memory increment
-	//pDMA2C2->CCR |= (1 << 5);	//circular mode
+	pDMA2C2->CCR |= (1 << 5);	//circular mode
 	pDMA2C2->CCR |= (1 << 1); 	//transfer complete interrupt enable
 
 
@@ -197,21 +170,19 @@ void DMA_init(void)
 
 void DMA_init_lidar(void)
 {
-		pDMA1C3->CPAR = (uint32_t) &pUARTLID->RDR;
-		pDMA1C3->CMAR = (uint32_t) &lidar_receive;
+	pDMA1C3->CPAR = (uint32_t) &pUARTLID->RDR;
+	pDMA1C3->CMAR = (uint32_t) &lidar_receive;
 
-		pDMA1C3->CNDTR = 9U;	//8 bytes
-		pDMA1SEL->CSELR |= (2U << 8);	//channel selection
-		pDMA1C3->CCR |= (1 << 7);	//memory increment
-		pDMA1C3->CCR |= (1 << 5);	//circular mode
-		pDMA1C3->CCR |= (1 << 1); 	//transfer complete interrupt enable
-
-
-
-
+	pDMA1C3->CNDTR = 9U;	//8 bytes
+	pDMA1SEL->CSELR |= (2U << 8);	//channel selection
+	pDMA1C3->CCR |= (1 << 7);	//memory increment
+	pDMA1C3->CCR |= (1 << 5);	//circular mode
+	pDMA1C3->CCR |= (1 << 1); 	//transfer complete interrupt enable
 
 
 }
+
+
 
 
 
@@ -248,12 +219,19 @@ void system_init(void)
 		pRCC->CFGR |= (2UL << 24);	//MSI Clock
 		pRCC->CR |= (1 << 3);	//MSI range in CR
 
-		//interrupts
+		//interrupts	//nvic->ISER
 		NVIC_EnableIRQ(TIM2_IRQn);			//fc transmit
 		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 		NVIC_EnableIRQ(DMA2_Channel1_IRQn);
 		NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+		NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+		NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 		NVIC_EnableIRQ(SPI2_IRQn);
+		NVIC_EnableIRQ(UART5_IRQn);
+		NVIC_EnableIRQ(USART3_IRQn);
+
+
+		NVIC_SetPriority(DMA2_Channel2_IRQn, 0);
 
 		__enable_irq();
 
@@ -279,8 +257,6 @@ void system_init(void)
 		pRCC->AHB1ENR |= (1 << 0);
 		//SPI2 clock enable
 		pRCC->APB1ENR1 |= (1 << 14);
-
-
 
 
 		timer_init(pTIM2);
@@ -358,6 +334,10 @@ void DMA2_Channel2_IRQHandler(void)		//xbee rx
 		yaw_value = (uint16_t) ((uart_receive[8] << 8) | (uart_receive[9] & 0xff));
 		AUX1_value = (uint16_t) ((uart_receive[10] << 8) | (uart_receive[11] & 0xff));
 
+	} else {
+		pDMA2C2->CCR &= ~(1U << 0);
+
+
 	}
 
 	throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
@@ -368,7 +348,8 @@ void DMA2_Channel2_IRQHandler(void)		//xbee rx
 
 
 	pDMA2->IFCR |= (1 << 5); //transfer complete flag clear
-	//DMA off *reset with idle line reset. //if(dma = on) {do not reset}
+	pDMA2->IFCR |= (1 << 4) | (1 << 6); //global interrupt flag clear
+
 
 }
 
@@ -386,12 +367,51 @@ void DMA2_Channel1_IRQHandler(void)		//xbee TX
 
 void DMA1_Channel3_IRQHandler(void)	//LIDAR
 {
-
+	if(!(lidar_receive[0] == 0x59)) {
+		pDMA1C3->CCR &= ~(1U << 0);
+	}
 	lidar_transmit = lidar_receive[2];
 
 	pDMA1->IFCR |= (1 << 9); //transfer complete flag clear
 
-	test++;
+}
+
+void DMA1_Channel4_IRQHandler(void)	//SPI2 RX
+{
 
 }
+
+void DMA1_Channel5_IRQHandler(void)	//SPI2TX
+{
+
+
+}
+
+//reset DMA counter and address if out of sync
+void UART5_IRQHandler(void)
+{
+	if(!(pDMA2C2->CCR & 1U)) {		//disabled by DMA2C2 interrupt no character match
+		pDMA2C2->CNDTR = 12U;
+		pDMA2C2->CCR |= (1 << 0);	//enable dma
+
+	}
+}
+
+void USART3_IRQHandler(void)
+{
+	if(!(pDMA1C3->CCR & 1U)) {		//disabled by DMA2C2 interrupt no character match
+			pDMA1C3->CNDTR = 8U;
+			pDMA1C3->CCR |= (1 << 0);	//enable dma
+
+		}
+}
+
+
+
+
+
+
+
+
+
 

@@ -20,6 +20,7 @@ void init_ctrl_values(void);
 void TIM2_IRQHandler(void);
 
 void DMA_init_Xbee(void);
+void SPI_DMA_Init(void);
 
 void DMA2_Channel2_IRQHandler(void);
 void DMA2_Channel1_IRQHandler(void);

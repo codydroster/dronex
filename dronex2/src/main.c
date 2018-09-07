@@ -120,8 +120,7 @@ int main(void)
 
 	while(1) {
 
-		pitch_value = 1100U;
-		pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
+
 		update_channel_values();
 		spi_index = 0;
 		//read_imu_mult(STATUS_REG, pSPI2, pGPIOC);
@@ -202,6 +201,11 @@ void AG_init(void)
 
 }
 
+void SPI_DMA_Init(void)
+{
+
+
+}
 
 
 
@@ -227,11 +231,12 @@ void system_init(void)
 		NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 		NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 		NVIC_EnableIRQ(SPI2_IRQn);
-		NVIC_EnableIRQ(UART5_IRQn);
-		NVIC_EnableIRQ(USART3_IRQn);
+		//NVIC_EnableIRQ(UART5_IRQn);
+		//NVIC_EnableIRQ(USART3_IRQn);
 
 
 		NVIC_SetPriority(DMA2_Channel2_IRQn, 0);
+
 
 		__enable_irq();
 
@@ -291,6 +296,7 @@ void update_channel_values(void)
 	transmit_data[14] = 0xff;
 	transmit_data[15] = 0xff;
 
+	test = 14;
 }
 
 
@@ -326,6 +332,8 @@ pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
 void DMA2_Channel2_IRQHandler(void)		//xbee rx
 {
 
+	pDMA2C2->CCR &= ~(1U << 0);
+
 	if(uart_receive[0] == 0x42 && uart_receive[1] ==0x43){
 
 		throttle_value = (uint16_t) ((uart_receive[2] << 8) | (uart_receive[3] & 0xff));
@@ -334,22 +342,26 @@ void DMA2_Channel2_IRQHandler(void)		//xbee rx
 		yaw_value = (uint16_t) ((uart_receive[8] << 8) | (uart_receive[9] & 0xff));
 		AUX1_value = (uint16_t) ((uart_receive[10] << 8) | (uart_receive[11] & 0xff));
 
+		throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
+		roll_trans = (uint16_t) (0x800U | (roll_value + 24U));
+		pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
+		yaw_trans = (uint16_t) (0x1800U | (yaw_value + 24U));
+		AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
+
+
+
 	} else {
-		pDMA2C2->CCR &= ~(1U << 0);
-
-
+		for(int i = 0; i < 12; i++) {		//if no char match, clear array
+			uart_receive[i] = 0;
+		}
 	}
-
-	throttle_trans = (uint16_t) (0x8000U | (throttle_value + 24U));
-	roll_trans = (uint16_t) (0x800U | (roll_value + 24U));
-	pitch_trans = (uint16_t) (0x1000U | (pitch_value + 24U));
-	yaw_trans = (uint16_t) (0x1800U | (yaw_value + 24U));
-	AUX1_trans = (uint16_t) (0x2000U | (AUX1_value + 24U));
 
 
 	pDMA2->IFCR |= (1 << 5); //transfer complete flag clear
 	pDMA2->IFCR |= (1 << 4) | (1 << 6); //global interrupt flag clear
 
+	pDMA2C2->CNDTR = 12U;	//12 bytes	reset
+	pDMA2C2->CCR |= (1U << 0);	//enable
 
 }
 
@@ -386,26 +398,6 @@ void DMA1_Channel5_IRQHandler(void)	//SPI2TX
 
 
 }
-
-//reset DMA counter and address if out of sync
-void UART5_IRQHandler(void)
-{
-	if(!(pDMA2C2->CCR & 1U)) {		//disabled by DMA2C2 interrupt no character match
-		pDMA2C2->CNDTR = 12U;
-		pDMA2C2->CCR |= (1 << 0);	//enable dma
-
-	}
-}
-
-void USART3_IRQHandler(void)
-{
-	if(!(pDMA1C3->CCR & 1U)) {		//disabled by DMA2C2 interrupt no character match
-			pDMA1C3->CNDTR = 8U;
-			pDMA1C3->CCR |= (1 << 0);	//enable dma
-
-		}
-}
-
 
 
 

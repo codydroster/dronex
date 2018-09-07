@@ -9,7 +9,8 @@
 
 
 
-volatile uint8_t transmit_data[16];
+
+uint8_t transmit_data[16];
 
 
 //USART_TypeDef *pUART2;

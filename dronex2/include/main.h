@@ -7,6 +7,25 @@
 
 
 
+//Values transmitted to FC
+uint16_t throttle_trans;
+uint16_t throttle_value;
+
+uint16_t roll_trans;
+uint16_t roll_value;
+
+uint16_t pitch_trans;
+uint16_t pitch_value;
+
+uint16_t yaw_trans;
+uint16_t yaw_value;
+
+uint16_t AUX1_trans;
+uint16_t AUX1_value;
+
+
+
+
 
 
 
@@ -20,28 +39,18 @@ void init_ctrl_values(void);
 void TIM2_IRQHandler(void);
 
 void DMA_init_Xbee(void);
-void SPI_DMA_Init(void);
-
-void DMA2_Channel2_IRQHandler(void);
-void DMA2_Channel1_IRQHandler(void);
-
-void DMA1_Channel3_IRQHandler(void);
-void DMA1_Channel4_IRQHandler(void);	//SPI2 RX
-void DMA1_Channel5_IRQHandler(void);	//SPI2 TX
 
 
-void SPI2_IRQHandler(void);
-void UART5_IRQHandler(void);
-void USART3_IRQHandler(void);
 
-void AG_init(void);
+
+
 
 
 void idle_line_reset_xbee(void);
 void idle_line_reset_lidar(void);
 
 
-void DMA_init_lidar(void);
+
 
 
 

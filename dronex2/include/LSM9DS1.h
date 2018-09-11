@@ -21,17 +21,21 @@ uint16_t spi_transmit[8];
 
 
 void SPI_init(void);
-void SPI_DMA_Init(void);
+
 
 
 void AG_init(void);
 void AG_read(void);
 
-void write_imu(uint8_t address, uint8_t data, SPI_TypeDef *pSPI, GPIO_TypeDef *pGPIO);
+void timer_init3(void);
 
-void read_imu(uint8_t address, SPI_TypeDef *pSPI, GPIO_TypeDef *pGPIO);
+void write_imu(uint8_t address, uint8_t data);
 
-void read_imu_mult(uint8_t start_address, SPI_TypeDef *pSPI, GPIO_TypeDef *pGPIO);
+void read_imu(uint8_t address);
+
+void AG_init(void);
+
+
 
 //accelerometer & gyro registers
 

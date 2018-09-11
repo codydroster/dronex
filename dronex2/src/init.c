@@ -4,7 +4,7 @@
 #include "xbee_uart.h"
 #include "drone_uart.h"
 #include "lidar.h"
-
+#include "LSM9DS1.h"
 
 
 GPIO_TypeDef *pGPIOA = GPIOA;
@@ -31,6 +31,9 @@ USART_TypeDef *pUARTLID = USART3;
 
 //TIM2 typedef
 TIM_TypeDef *pTIM2 = TIM2;
+
+//TIM3 typedef
+TIM_TypeDef *pTIM3 = TIM3;
 
 //SPI typedef
 SPI_TypeDef *pSPI2 = SPI2;
@@ -79,15 +82,16 @@ void system_init(void)
 		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 		NVIC_EnableIRQ(DMA2_Channel1_IRQn);
 		NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-		NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-		NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-		//NVIC_EnableIRQ(SPI2_IRQn);
+		NVIC_EnableIRQ(TIM3_IRQn);
+	//	NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+	//	NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+		NVIC_EnableIRQ(SPI2_IRQn);
 		//NVIC_EnableIRQ(UART5_IRQn);
 		//NVIC_EnableIRQ(USART3_IRQn);
 
 
 		NVIC_SetPriority(DMA2_Channel2_IRQn, 0);
-
+		//NVIC_SetPriority(SPI2_IRQn, 1);
 
 		__enable_irq();
 
@@ -107,6 +111,9 @@ void system_init(void)
 		pRCC->APB1ENR1 |= (1 << 20);
 		//TIM2 CLK
 		pRCC->APB1ENR1 |= (1 << 0);
+		//TIM3
+		pRCC->APB1ENR1 |= (1 << 1);
+
 		//DMA2
 		pRCC->AHB1ENR |= (1 << 1);
 		//DMA1
@@ -115,9 +122,10 @@ void system_init(void)
 		pRCC->APB1ENR1 |= (1 << 14);
 
 
-		timer_init();
+		timer_init2();
 
 }
+
 
 
 

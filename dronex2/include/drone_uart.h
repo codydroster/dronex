@@ -20,7 +20,8 @@ uint8_t transmit_data[16];
 
 void uart_transmit(USART_TypeDef *pUART);
 
-//void TIM2_IRQHandler(void);
+void timer_init2(void);
+
 
 void drone_uart_init(void);
 

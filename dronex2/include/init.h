@@ -47,6 +47,9 @@ USART_TypeDef *pUARTLID;
 //TIM2 typedef
 TIM_TypeDef *pTIM2;
 
+//TIM3 typedef
+TIM_TypeDef *pTIM3;
+
 //SPI typedef
 SPI_TypeDef *pSPI2;
 

@@ -14,7 +14,7 @@
 #include "lidar.h"
 
 #include "pindefines.h"
-#include "control.h"
+
 
 #include "math.h"
 
@@ -30,7 +30,7 @@ int main(void)
 	system_init();
 	DMA_init_Xbee();
 	DMA_init_lidar();
-	SPI_DMA_Init();
+
 
 	drone_uart_init();
 	xbee_uart_init();
@@ -42,16 +42,15 @@ int main(void)
 	pDMA2C2->CCR |= (1 << 0);	//enable DMA2 Channel 2
 	pDMA2C1->CCR |= (1 << 0);	//enable DMA2 Channel 1
 	pDMA1C3->CCR |= (1 << 0);	//enable DMA1 channel 3
-	pDMASPIRX->CCR |= (1 << 0);	//enable DMA1 channel 4
-	pDMASPITX->CCR |= (1 << 0);	//enable DMA1 channel 5
 
 
 	AG_init();
 
-	//read_imu_mult(STATUS_REG, pSPI2, pGPIOC);
-
+	timer_init3();
 
 	while(1) {
+
+
 
 
 		update_channel_values();

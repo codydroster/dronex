@@ -82,72 +82,65 @@ void SPI_init(void)
 	pSPI2->CR2 |= (1 << 2);	//SSOE
 	pSPI2->CR2 |= (1 << 12);	//FRXTH //1/4 fifo
 	pSPI2->CR1 |= (1 << 0);	//clock phase
-	pSPI2->CR2 |= (1 << 6);	//TXNEIE interrupt
-	pSPI2->CR2 |= (1 << 3); //nss
-	pSPI2->CR2 |= (1 << 1) | (1 << 0); //dma enable rx, tx
+	pSPI2->CR2 |= (1 << 6);	//RXNEIE interrupt
 
-//	pSPI2->CR1 |= (1 << 6);	//SPI enable
+
+	pSPI2->CR1 |= (1 << 6);	//SPI enable
 
 }
+
+
+void write_imu(uint8_t address, uint8_t data)
+{
+
+	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+	pSPI2->DR = (uint16_t) ((address << 8) | data);
+
+	while((pSPI2->SR >> 7) & 1U);	//while busy
+	pGPIOC->ODR |= (1U << cs_ag);
+
+
+}
+
+void read_imu(uint8_t address)
+{
+
+	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+
+	pSPI2->DR = (uint16_t) (0x8000 | (address << 8));
+
+	while((pSPI2->SR >> 7) & 1U);	//while busy
+	pGPIOC->ODR |= (1U << cs_ag);
+
+
+}
+
+
 
 
 void AG_init(void)
 {
+		read_imu(WHO_AM_I);
 
-	pDMASPIRX->CCR |= (1 << 0);	//enable DMA1 channel 4
-	pDMASPITX->CCR |= (1 << 0);	//enable DMA1 channel 5
-
-	pSPI2->CR1 |= (1 << 6);	//SPI enable
-	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+		write_imu(CTRL_REG1_G,	0xC0);
+		write_imu(CTRL_REG2_G,	0x00);
+		write_imu(CTRL_REG3_G, 	0x00);
+		write_imu(CTRL_REG4,	0x38);
+		write_imu(CTRL_REG5_XL,	0x38);
+		write_imu(CTRL_REG6_XL, 0x00);
+		write_imu(CTRL_REG7_XL, 0x00);
+		write_imu(CTRL_REG8,	0x04);
 
 
 }
 
-void AG_read(void)
+void timer_init3(void)
 {
-	pDMASPITX->CMAR = (uint32_t) &spi_transmit;
-	pDMASPIRX->CCR |= (1 << 0);	//enable DMA1 channel 4
-	pDMASPITX->CCR |= (1 << 0);	//enable DMA1 channel 5
-	pSPI2->CR1 |= (1U << 6);
-	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
-}
-
-
-
-
-
-
-
-void SPI_DMA_Init(void)
-{
-	//SPI RX - channel 4
-	pDMASPIRX->CPAR = (uint32_t) &pSPI2->DR;
-	pDMASPIRX->CMAR = (uint32_t) &spi_receive;
-
-	pDMASPIRX->CNDTR = 14U;	//num bytes
-	pDMA1SEL->CSELR |= (1U << 12U);	//channel selection
-	pDMASPIRX->CCR |= (1 << 7);	//memory increment
-	//pDMASPIRX->CCR |= (1 << 5);	//circular mode								/****disable at start****/
-	pDMASPIRX->CCR |= (1 << 1); 	//transfer complete interrupt enable
-	//pDMASPITX->CCR |= (1 << 10);
-
-
-
-
-	//SPI TX - channel 5
-	pDMASPITX->CPAR = (uint32_t) &pSPI2->DR;
-	pDMASPITX->CMAR = (uint32_t) &spi_init_TXbuffer;
-	pDMASPITX->CCR |= (1 << 4);						//DIR: mem to per
-
-
-	//pDMASPITX->CCR |= (1 << 10);
-	pDMASPITX->CNDTR = 16U;	//num bytes
-	pDMA1SEL->CSELR |= (1U << 16U);	//channel selection
-	pDMASPITX->CCR |= (1 << 7);	//memory increment
-	//pDMASPITX->CCR |= (1 << 5);	//circular mode								/****disable at start****/
-	pDMASPITX->CCR |= (1 << 1); 	//transfer complete interrupt enable
-	//pDMASPITX->CCR |= (1 << 0);	//enable DMA1 channel 5
-
+		pTIM3->ARR = 0x74000UL;
+		pTIM3->CR1 |=  (1 << 7); //ARPE
+		pTIM3->CR1 |= (1 << 0); 	//CEN
+		pTIM3->DIER |= (1 << 0); //update interrupt
 
 
 }
+

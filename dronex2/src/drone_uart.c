@@ -67,7 +67,7 @@ void drone_uart_init(void)
 }
 
 
-void timer_init(void)
+void timer_init2(void)
 {
 	pTIM2->ARR = 0x40740UL;
 	pTIM2->CR1 |=  (1 << 7); //ARPE

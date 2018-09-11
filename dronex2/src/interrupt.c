@@ -12,8 +12,12 @@
 
 void SPI2_IRQHandler(void)
 {
+	if(spi_index > 8){
+		spi_index = 0;
+	}
+	spi_receive[spi_index] = (uint16_t) pSPI2->DR;
 
-
+	spi_index++;
 
 }
 
@@ -26,6 +30,17 @@ pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
 
 }
 
+
+void TIM3_IRQHandler(void)
+{
+	read_imu(OUT_X_L_XL);
+	while(!((SPI2->SR >> 1) & 1U));	//while trans
+	pSPI2->DR = 0x00;
+	while(!((SPI2->SR >> 1) & 1U));	//while trans
+	pSPI2->DR = 0x00;
+
+
+}
 
 
 
@@ -89,28 +104,6 @@ void DMA1_Channel3_IRQHandler(void)	//LIDAR
 }
 
 
-void DMA1_Channel4_IRQHandler(void)	//SPI2 RX
-{
-	pDMA1->IFCR |= (1 << 13); //transfer complete flag clear
-	pGPIOC->ODR |= (1U << cs_ag);	//SS AG: slave select disable when done receiving
-	pDMASPIRX->CCR &= ~(1U << 0);	//disable DMA1 channel 4
-	//pGPIOC->ODR |= (1U << cs_ag);	//SS AG
-	//pSPI2->CR1 &= ~(1U << 6);
-	pDMASPITX->CMAR = (uint32_t) &spi_transmit;	//reset memory address TX
-	pDMASPIRX->CNDTR = 18U;	//num bytes
-	pDMASPITX->CNDTR = 20U;	//num bytes
-}
-
-
-
-void DMA1_Channel5_IRQHandler(void)	//SPI2TX
-{
-	pDMA1->IFCR |= (1 << 17); //transfer complete flag clear
-	pDMASPITX->CCR &= ~(1U << 0);	//disable DMA1 channel 5
-
-
-
-}
 
 
 

@@ -32,6 +32,7 @@ void timer_init3(void);
 void write_imu(uint8_t address, uint8_t data);
 
 void read_imu(uint8_t address);
+void read_imu_mult(uint8_t address);
 
 void AG_init(void);
 

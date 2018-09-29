@@ -74,7 +74,7 @@ void SPI_init(void)
 	pGPIOC->ODR |= (1 << cs_ag);
 
 	//SPI setup
-	pSPI2->CR1 |= (7U << 3);	//BRR 3MHz
+	pSPI2->CR1 |= (5U << 3);	//BRR 3MHz
 	pSPI2->CR1 |= (1 << 1); 	//CK 1 when idle
 	pSPI2->CR1 |= (1 << 2);	//Master Mode
 
@@ -102,15 +102,30 @@ void write_imu(uint8_t address, uint8_t data)
 
 }
 
+void read_imu_mult(uint8_t address)
+{
+	pGPIOC->ODR &= ~(1U << cs_ag);
+	pSPI2->DR = (uint16_t) (0x8000 | (address << 8));
+	while(!(pSPI2->SR >> 0) & 1U);	//while transmit buffer not empty
+	pSPI2->DR = 0;
+	while(!(pSPI2->SR >> 0) & 1U);
+	pSPI2->DR = 0;
+	while(!(pSPI2->SR >> 0) & 1U);
+	pGPIOC->ODR |= (1U << cs_ag);
+
+
+
+}
+
 void read_imu(uint8_t address)
 {
 
-	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+//	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
 
 	pSPI2->DR = (uint16_t) (0x8000 | (address << 8));
 
 	while((pSPI2->SR >> 7) & 1U);	//while busy
-	pGPIOC->ODR |= (1U << cs_ag);
+	//pGPIOC->ODR |= (1U << cs_ag);
 
 
 }
@@ -120,7 +135,7 @@ void read_imu(uint8_t address)
 
 void AG_init(void)
 {
-		read_imu(WHO_AM_I);
+		//read_imu(WHO_AM_I);
 
 		write_imu(CTRL_REG1_G,	0xC0);
 		write_imu(CTRL_REG2_G,	0x00);

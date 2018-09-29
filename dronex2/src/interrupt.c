@@ -12,12 +12,14 @@
 
 void SPI2_IRQHandler(void)
 {
-	if(spi_index > 8){
-		spi_index = 0;
+
+	if(*spi_index > 8){
+		*spi_index = 0;
 	}
-	spi_receive[spi_index] = (uint16_t) pSPI2->DR;
+	spi_receive[*spi_index] = (uint16_t) pSPI2->DR;
 
 	spi_index++;
+
 
 }
 
@@ -31,7 +33,7 @@ pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
 }
 
 
-void TIM3_IRQHandler(void)
+/*void TIM3_IRQHandler(void)
 {
 	read_imu(OUT_X_L_XL);
 	while(!((SPI2->SR >> 1) & 1U));	//while trans
@@ -40,7 +42,7 @@ void TIM3_IRQHandler(void)
 	pSPI2->DR = 0x00;
 
 
-}
+}*/
 
 
 

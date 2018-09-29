@@ -82,7 +82,7 @@ void system_init(void)
 		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 		NVIC_EnableIRQ(DMA2_Channel1_IRQn);
 		NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-		NVIC_EnableIRQ(TIM3_IRQn);
+		//NVIC_EnableIRQ(TIM3_IRQn);
 	//	NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 	//	NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 		NVIC_EnableIRQ(SPI2_IRQn);

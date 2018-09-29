@@ -46,10 +46,16 @@ int main(void)
 
 	AG_init();
 
+	for(int i = 0; i < 100000; i++);
 	timer_init3();
+
+
+
 
 	while(1) {
 
+		//read_imu(WHO_AM_I);
+		read_imu_mult(OUT_X_L_XL);
 
 
 

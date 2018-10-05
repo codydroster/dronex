@@ -7,6 +7,8 @@
 #include "LSM9DS1.h"
 
 
+
+
 GPIO_TypeDef *pGPIOA = GPIOA;
 
 GPIO_TypeDef *pGPIOB = GPIOB;
@@ -43,11 +45,14 @@ DMA_TypeDef *pDMA1 = DMA1;
 DMA_TypeDef *pDMA2 = DMA2;
 
 
+
+
+
 //DMA1
 DMA_Channel_TypeDef *pDMA1C3 = DMA1_Channel3;
 
-DMA_Channel_TypeDef *pDMASPIRX = DMA1_Channel4;
-DMA_Channel_TypeDef *pDMASPITX = DMA1_Channel5;
+//DMA_Channel_TypeDef *pDMASPIRX = DMA1_Channel4;
+//DMA_Channel_TypeDef *pDMASPITX = DMA1_Channel5;
 
 DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
 
@@ -82,16 +87,16 @@ void system_init(void)
 		NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 		NVIC_EnableIRQ(DMA2_Channel1_IRQn);
 		NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-		//NVIC_EnableIRQ(TIM3_IRQn);
+		NVIC_EnableIRQ(TIM3_IRQn);
 	//	NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 	//	NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-		NVIC_EnableIRQ(SPI2_IRQn);
+	//	NVIC_EnableIRQ(SPI2_IRQn);
 		//NVIC_EnableIRQ(UART5_IRQn);
 		//NVIC_EnableIRQ(USART3_IRQn);
 
 
 		NVIC_SetPriority(DMA2_Channel2_IRQn, 0);
-		//NVIC_SetPriority(SPI2_IRQn, 1);
+		NVIC_SetPriority(SPI2_IRQn, 1);
 
 		__enable_irq();
 

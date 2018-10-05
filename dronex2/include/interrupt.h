@@ -20,6 +20,6 @@ void USART3_IRQHandler(void);
 void TIM2_IRQHandler(void);
 void TIM3_IRQHandler(void);
 
-uint8_t *spi_index = 0;
+uint8_t spi_index = 0;
 
 #endif

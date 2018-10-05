@@ -26,7 +26,7 @@ void lidar_uart_init(void)
 
 
 	pGPIOC->OSPEEDR |= (2U << (lidar_tx*2)); //speed HIGH TX
-	pGPIOC->PUPDR |= (2U << (XBEE_TX_PIN*2));	//PULL-UP enable
+	pGPIOC->PUPDR |= (2U << (lidar_tx*2));	//PULL-UP enable
 
 
 	pGPIOC->AFR[0] |= (7U << (lidar_rx*4));	//alternate function 8: USART5 RX

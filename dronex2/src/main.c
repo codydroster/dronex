@@ -12,9 +12,10 @@
 #include "xbee_uart.h"
 #include "LSM9DS1.h"
 #include "lidar.h"
+#include "fc.h"
 
 #include "pindefines.h"
-
+//#include "arm_math.h"
 
 #include "math.h"
 
@@ -43,10 +44,10 @@ int main(void)
 	pDMA2C1->CCR |= (1 << 0);	//enable DMA2 Channel 1
 	pDMA1C3->CCR |= (1 << 0);	//enable DMA1 channel 3
 
-
-	AG_init();
-
 	for(int i = 0; i < 100000; i++);
+	AG_init();
+	for(int i = 0; i < 100000; i++);
+
 	timer_init3();
 
 
@@ -54,14 +55,14 @@ int main(void)
 
 	while(1) {
 
-		//read_imu(WHO_AM_I);
-		read_imu_mult(OUT_X_L_XL);
-
 
 
 		update_channel_values();
-
-
+		sensor_update();
+		angle_update();
+		lidar_update();
+		pUART5->TDR = angleAccl_x;
+		while(!(pUART5->ISR & (1 << 7)));	//transmit data register flag
 		//pUART5->TDR = lidar_transmit;		//accel output temp
 
 	}

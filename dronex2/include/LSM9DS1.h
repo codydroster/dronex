@@ -2,19 +2,13 @@
 #include "stm32l496xx.h"
 
 
-uint16_t accel_x_val;
-uint16_t accel_y_val;
-uint16_t accel_z_val;
 
-uint16_t gyro_x_val;
-uint16_t gyro_y_val;
-uint16_t gyro_z_val;
 
 uint16_t mag_z_val;
 
 
 
-uint16_t spi_receive[8];
+uint16_t spi_receive[10];
 
 uint16_t spi_transmit[8];
 
@@ -30,6 +24,8 @@ void AG_read(void);
 void timer_init3(void);
 
 void write_imu(uint8_t address, uint8_t data);
+void write_imu_init(uint8_t address, uint8_t data);
+
 
 void read_imu(uint8_t address);
 void read_imu_mult(uint8_t address);

@@ -93,6 +93,18 @@ void SPI_init(void)
 void write_imu(uint8_t address, uint8_t data)
 {
 
+	//pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+	pSPI2->DR = (uint16_t) ((address << 8) | data);
+
+	while((pSPI2->SR >> 7) & 1U);	//while busy
+	//pGPIOC->ODR |= (1U << cs_ag);
+
+
+}
+
+void write_imu_init(uint8_t address, uint8_t data)
+{
+
 	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
 	pSPI2->DR = (uint16_t) ((address << 8) | data);
 
@@ -120,12 +132,12 @@ void read_imu_mult(uint8_t address)
 void read_imu(uint8_t address)
 {
 
-//	pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
+
 
 	pSPI2->DR = (uint16_t) (0x8000 | (address << 8));
 
 	while((pSPI2->SR >> 7) & 1U);	//while busy
-	//pGPIOC->ODR |= (1U << cs_ag);
+
 
 
 }
@@ -137,24 +149,27 @@ void AG_init(void)
 {
 		//read_imu(WHO_AM_I);
 
-		write_imu(CTRL_REG1_G,	0xC0);
-		write_imu(CTRL_REG2_G,	0x00);
-		write_imu(CTRL_REG3_G, 	0x00);
-		write_imu(CTRL_REG4,	0x38);
-		write_imu(CTRL_REG5_XL,	0x38);
-		write_imu(CTRL_REG6_XL, 0x00);
-		write_imu(CTRL_REG7_XL, 0x00);
-		write_imu(CTRL_REG8,	0x04);
+		write_imu_init(CTRL_REG1_G,	0xC0);
+		write_imu_init(CTRL_REG2_G,	0x00);
+		write_imu_init(CTRL_REG3_G, 	0x00);
+		write_imu_init(CTRL_REG4,	0x38);
+		write_imu_init(CTRL_REG5_XL,	0x38);
+		write_imu_init(CTRL_REG6_XL, 0x00);
+		write_imu_init(CTRL_REG7_XL, 0x00);
+		write_imu_init(CTRL_REG8,	0x04);
 
 
 }
 
 void timer_init3(void)
 {
-		pTIM3->ARR = 0x74000UL;
+		pTIM3->ARR = 0xFFFFUL;		//arbitrary time between reads
 		pTIM3->CR1 |=  (1 << 7); //ARPE
 		pTIM3->CR1 |= (1 << 0); 	//CEN
 		pTIM3->DIER |= (1 << 0); //update interrupt
+
+
+
 
 
 }

@@ -40,7 +40,7 @@ void lidar_uart_init(void)
 	pUARTLID->BRR = 0xD0UL;				// 115200 BAUD
 
 	pUARTLID->CR1 |= (1 << 0);				//USART Enable
-	pUARTLID->CR1 |= (1 << 2); 		//RX Enable
+	pUARTLID->CR1 |= (1 << 2) | (1 << 3); 		//RX Enable
 	pUARTLID->CR3 |= (1 << 6);			//DMA Enable
 
 

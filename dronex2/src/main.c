@@ -31,6 +31,7 @@ int main(void)
 	system_init();
 	DMA_init_Xbee();
 	DMA_init_lidar();
+	timer_init4();
 
 
 	drone_uart_init();
@@ -61,8 +62,12 @@ int main(void)
 		sensor_update();
 		angle_update();
 		lidar_update();
-		pUART5->TDR = angleAccl_x;
-		while(!(pUART5->ISR & (1 << 7)));	//transmit data register flag
+		pUARTLID->TDR = 0x03;
+		while(!(pUARTLID->ISR & (1 << 7)));	//transmit data register flag
+		pUARTLID->TDR = 0x04;
+		while(!(pUARTLID->ISR & (1 << 7)));
+		pUARTLID->TDR = 0x42;
+		while(!(pUARTLID->ISR & (1 << 7)));
 		//pUART5->TDR = lidar_transmit;		//accel output temp
 
 	}

@@ -151,11 +151,11 @@ void AG_init(void)
 
 		write_imu_init(CTRL_REG1_G,	0xC0);
 		write_imu_init(CTRL_REG2_G,	0x00);
-		write_imu_init(CTRL_REG3_G, 	0x00);
+		write_imu_init(CTRL_REG3_G, 0x00);
 		write_imu_init(CTRL_REG4,	0x38);
-		write_imu_init(CTRL_REG5_XL,	0x38);
-		write_imu_init(CTRL_REG6_XL, 0x00);
-		write_imu_init(CTRL_REG7_XL, 0x00);
+		write_imu_init(CTRL_REG5_XL,0x38);
+		write_imu_init(CTRL_REG6_XL,0x00);
+		write_imu_init(CTRL_REG7_XL,0x00);
 		write_imu_init(CTRL_REG8,	0x04);
 
 
@@ -168,8 +168,15 @@ void timer_init3(void)
 		pTIM3->CR1 |= (1 << 0); 	//CEN
 		pTIM3->DIER |= (1 << 0); //update interrupt
 
+}
 
 
+void timer_init4(void)
+{
+
+
+		pTIM4->CR1 |= (1 << 0);  //CEN
+		pTIM4->CR1 |= (1 << 9);	 //clock divided by 4 6MHZ
 
 
 }

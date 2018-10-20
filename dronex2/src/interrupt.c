@@ -55,7 +55,7 @@ void TIM3_IRQHandler(void)
 		spi_receive[7] = (uint16_t) pSPI2->DR;
 		write_imu(0,0);
 		spi_receive[8] = (uint16_t) pSPI2->DR;
-		spi_receive[9] = (uint16_t) pSPI2->DR;
+		//spi_receive[9] = (uint16_t) pSPI2->DR;
 		while((pSPI2->SR >> 7) & 1U);	//while busy
 		pGPIOC->ODR |= (1U << cs_ag);
 

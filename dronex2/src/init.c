@@ -37,6 +37,11 @@ TIM_TypeDef *pTIM2 = TIM2;
 //TIM3 typedef
 TIM_TypeDef *pTIM3 = TIM3;
 
+//TIM4 typedef
+TIM_TypeDef *pTIM4 = TIM4;
+
+
+
 //SPI typedef
 SPI_TypeDef *pSPI2 = SPI2;
 
@@ -118,6 +123,8 @@ void system_init(void)
 		pRCC->APB1ENR1 |= (1 << 0);
 		//TIM3
 		pRCC->APB1ENR1 |= (1 << 1);
+		//TIM4
+		pRCC->APB1ENR1 |= (1 << 2);
 
 		//DMA2
 		pRCC->AHB1ENR |= (1 << 1);

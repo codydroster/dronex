@@ -334,11 +334,9 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.419911292;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.419911292.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1485076102;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1973514181">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.1073264091;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.1073264091.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.356649571;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.365105309">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
@@ -346,5 +344,4 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

@@ -8,7 +8,7 @@ uint16_t mag_z_val;
 
 
 
-uint16_t spi_receive[10];
+int16_t spi_receive[10];
 
 uint16_t spi_transmit[8];
 
@@ -22,6 +22,7 @@ void AG_init(void);
 void AG_read(void);
 
 void timer_init3(void);
+void timer_init4(void);
 
 void write_imu(uint8_t address, uint8_t data);
 void write_imu_init(uint8_t address, uint8_t data);

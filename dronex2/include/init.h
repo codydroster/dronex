@@ -50,6 +50,9 @@ TIM_TypeDef *pTIM2;
 //TIM3 typedef
 TIM_TypeDef *pTIM3;
 
+//TIM3 typedef
+TIM_TypeDef *pTIM4;
+
 //SPI typedef
 SPI_TypeDef *pSPI2;
 

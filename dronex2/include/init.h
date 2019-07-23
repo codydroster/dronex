@@ -1,4 +1,4 @@
-#include "stm32l496xx.h"
+#include "stm32g431xx.h"
 
 
 
@@ -63,13 +63,7 @@ DMA_TypeDef *pDMA1;
 DMA_TypeDef *pDMA2;
 
 
-//DMA1
-DMA_Channel_TypeDef *pDMA1C3;
 
-DMA_Channel_TypeDef *pDMASPIRX;
-DMA_Channel_TypeDef *pDMASPITX;
-
-DMA_Request_TypeDef *pDMA1SEL;
 
 
 
@@ -78,4 +72,4 @@ DMA_Request_TypeDef *pDMA1SEL;
 DMA_Channel_TypeDef *pDMA2C2;
 DMA_Channel_TypeDef *pDMA2C1;
 
-DMA_Request_TypeDef *pDMA2SEL;
+

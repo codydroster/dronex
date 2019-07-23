@@ -3,22 +3,12 @@
 #include "interrupt.h"
 #include "main.h"
 #include "lidar.h"
-#include "LSM9DS1.h"
+
 #include "xbee_uart.h"
 #include "drone_uart.h"
-#include "stm32l496xx.h"
+#include "stm32g431xx.h"
 
 
-
-void SPI2_IRQHandler(void)
-{
-
-	spi_receive[spi_index] = (uint32_t) pSPI2->DR;
-
-
-
-
-}
 
 
 
@@ -30,42 +20,6 @@ pTIM2->SR &= ~(1UL << 0);	//clear interrupt flag
 }
 
 
-void TIM3_IRQHandler(void)
-{
-		spi_index = 0;
-		pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
-		read_imu(OUT_X_L_XL);
-		spi_receive[0] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[1] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[2] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[3] = (uint16_t) pSPI2->DR;
-	//	spi_receive[4] = pSPI2->DR;
-		while((pSPI2->SR >> 7) & 1U);	//while busy
-		pGPIOC->ODR |= (1U << cs_ag);
-
-		pGPIOC->ODR &= ~(1U << cs_ag);	//SS AG
-		read_imu(OUT_X_L_G);
-		spi_receive[5] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[6] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[7] = (uint16_t) pSPI2->DR;
-		write_imu(0,0);
-		spi_receive[8] = (uint16_t) pSPI2->DR;
-		//spi_receive[9] = (uint16_t) pSPI2->DR;
-		while((pSPI2->SR >> 7) & 1U);	//while busy
-		pGPIOC->ODR |= (1U << cs_ag);
-
-
-
-
-
-		pTIM3->SR &= ~(1UL << 0);	//clear interrupt flag
-
-}
 
 
 
@@ -116,17 +70,6 @@ void DMA2_Channel1_IRQHandler(void)		//xbee TX
 }
 
 
-
-void DMA1_Channel3_IRQHandler(void)	//LIDAR
-{
-	if(!(lidar_receive[0] == 0x59)) {
-		pDMA1C3->CCR &= ~(1U << 0);
-	}
-	lidar_transmit = ((lidar_receive[3] << 8) | lidar_receive[2]);
-
-	pDMA1->IFCR |= (1 << 9); //transfer complete flag clear
-
-}
 
 
 

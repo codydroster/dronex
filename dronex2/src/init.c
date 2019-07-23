@@ -4,7 +4,7 @@
 #include "xbee_uart.h"
 #include "drone_uart.h"
 #include "lidar.h"
-#include "LSM9DS1.h"
+
 
 
 
@@ -26,7 +26,7 @@ RCC_TypeDef *pRCC = RCC;
 USART_TypeDef *pUART2 = USART2;
 
 //UART2 init - Xbee
-USART_TypeDef *pUART5 = UART5;
+USART_TypeDef *pUART5 = USART1;
 
 //UART3 init - Lidar
 USART_TypeDef *pUARTLID = USART3;
@@ -59,7 +59,7 @@ DMA_Channel_TypeDef *pDMA1C3 = DMA1_Channel3;
 //DMA_Channel_TypeDef *pDMASPIRX = DMA1_Channel4;
 //DMA_Channel_TypeDef *pDMASPITX = DMA1_Channel5;
 
-DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
+//DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
 
 
 
@@ -68,7 +68,7 @@ DMA_Request_TypeDef *pDMA1SEL = DMA1_CSELR;
 DMA_Channel_TypeDef *pDMA2C2 = DMA2_Channel2;
 DMA_Channel_TypeDef *pDMA2C1 = DMA2_Channel1;
 
-DMA_Request_TypeDef *pDMA2SEL = DMA2_CSELR;
+//DMA_Request_TypeDef *pDMA2SEL = DMA2_CSELR;
 
 
 

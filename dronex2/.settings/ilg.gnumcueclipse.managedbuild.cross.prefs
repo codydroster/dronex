@@ -1,2 +1,2 @@
-buildTools.path=/usr/bin
+buildTools.path=/opt/arm-none-eabi-gcc/8.2.1-1.2-20190119-1237/bin
 eclipse.preferences.version=1

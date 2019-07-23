@@ -47,7 +47,7 @@ void lidar_uart_init(void)
 }
 
 
-void DMA_init_lidar(void)
+/*void DMA_init_lidar(void)
 {
 	pDMA1C3->CPAR = (uint32_t) &pUARTLID->RDR;
 	pDMA1C3->CMAR = (uint32_t) &lidar_receive;
@@ -59,5 +59,5 @@ void DMA_init_lidar(void)
 	pDMA1C3->CCR |= (1 << 1); 	//transfer complete interrupt enable
 
 
-}
+}*/
 

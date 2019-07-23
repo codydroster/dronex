@@ -51,7 +51,8 @@ void DMA_init_Xbee(void)	//xbee
 	pDMA2C2->CMAR = (uint32_t) &uart_receive;
 
 	pDMA2C2->CNDTR = 12U;	//12 bytes
-	pDMA2SEL->CSELR |= (2U << 4);	//channel selection
+
+	pDMA2C2->CCR |= (0 << 4);	//DIR: per to mem
 	pDMA2C2->CCR |= (1 << 7);	//memory increment
 	pDMA2C2->CCR |= (1 << 5);	//circular mode
 	pDMA2C2->CCR |= (1 << 1); 	//transfer complete interrupt enable
@@ -64,7 +65,6 @@ void DMA_init_Xbee(void)	//xbee
 	pDMA2C1->CCR |= (1 << 4);	//DIR: mem to per
 	pDMA2C1->CNDTR = 1U;	//1 bytes
 	pDMA2C1->CCR |= (1 << 5);	//circular mode
-	pDMA2SEL->CSELR |= (2U << 0);	//channel selection
 	pDMA2C1->CCR |= (1 << 1); 	//transfer complete interrupt enable
 
 	pUART5->CR1 |= (1 << 3);		//UART TX ENABLE

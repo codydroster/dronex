@@ -1,6 +1,6 @@
 #include "init.h"
 #include <stdint.h>
-#include "stm32l496xx.h"
+#include "stm32g431xx.h"
 
 
 #define RX_PIN 10UL

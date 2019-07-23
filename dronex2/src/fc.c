@@ -1,5 +1,5 @@
 #include "init.h"
-#include "LSM9DS1.h"
+
 #include "lidar.h"
 #include "fc.h"
 #include "math.h"
@@ -7,25 +7,7 @@
 
 
 
-void sensor_update(void)
-{
-acclRaw_x = (int16_t) spi_receive[1];
-acclRaw_y = (int16_t) spi_receive[2];
-acclRaw_z = (int16_t) spi_receive[3];
 
-
-
-//  245Deg/Sec   8.75millidegrees/LSB
-
-/*****would like to know why x and y are swithed*********/
-pTIM4->CNT = 0;
-gyrY = ((float) spi_receive[6]) / 87.5;	//convert to degrees/second
-gyrX = ((float) spi_receive[7]) / 87.5;
-gyrZ = ((float) spi_receive[8]) / 87.5;
-
-
-
-}
 
 
 void angle_update(void)

@@ -3,14 +3,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "init.h"
-#include "stm32l496xx.h"
+#include "stm32g431xx.h"
 #include <stdio.h>
 
 
 #include <stdint.h>
 #include "drone_uart.h"
 #include "xbee_uart.h"
-#include "LSM9DS1.h"
+
 #include "lidar.h"
 #include "fc.h"
 
@@ -30,26 +30,19 @@ int main(void)
 {
 	system_init();
 	DMA_init_Xbee();
-	DMA_init_lidar();
-	timer_init4();
+
 
 
 	drone_uart_init();
 	xbee_uart_init();
 	lidar_uart_init();
-	SPI_init();
+
 
 
 
 	pDMA2C2->CCR |= (1 << 0);	//enable DMA2 Channel 2
 	pDMA2C1->CCR |= (1 << 0);	//enable DMA2 Channel 1
-	pDMA1C3->CCR |= (1 << 0);	//enable DMA1 channel 3
 
-	for(int i = 0; i < 100000; i++);
-	AG_init();
-	for(int i = 0; i < 100000; i++);
-
-	timer_init3();
 
 
 
@@ -59,7 +52,7 @@ int main(void)
 
 
 		update_channel_values();
-		sensor_update();
+
 		angle_update();
 		lidar_update();
 		pUARTLID->TDR = 0x03;
